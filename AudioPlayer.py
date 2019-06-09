@@ -58,8 +58,8 @@ class audioAnalyzer(QMainWindow):
 
     def spectrum(self):
         # Spectrum  
-        self.specTrum = specTrum()
-        self.setCentralWidget(self.specTrum)
+        SpecTrum = specTrum()
+        self.setCentralWidget(SpecTrum)
 
     def record(self):
         def recordAction(self):
