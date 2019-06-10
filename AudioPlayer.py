@@ -2,10 +2,12 @@ import sys
 import numpy as np
 import pyaudio
 import pyqtgraph as pg 
-from PyQt5.QtWidgets import QMainWindow, QAction, QApplication, QMenu, QFileDialog, QWidget, QPushButton, QVBoxLayout, QGridLayout, QInputDialog
+from PyQt5.QtWidgets import QMainWindow, QAction, QApplication, QMenu, QFileDialog, QWidget, QPushButton, QVBoxLayout, QGridLayout, QInputDialog, QTextEdit
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import QFont
 import wave
+import speech_recognition as sr
 
 format = pyaudio.paFloat32
 channels = 1
@@ -26,11 +28,6 @@ class audioAnalyzer(QMainWindow):
         fileMenu = menubar.addMenu('File')
         modeMenu = menubar.addMenu('Mode')
 
-        openAct = QAction('Open', self)
-        openAct.setShortcut('Ctrl+O')
-        openAct.setStatusTip('Open a file')
-        openAct.triggered.connect(self.openFileNameDialog)
-
         exitAct = QAction('Exit', self)
         exitAct.setShortcut('Esc')
         exitAct.triggered.connect(self.close)
@@ -42,24 +39,52 @@ class audioAnalyzer(QMainWindow):
         rtMicAct = QAction('Realtime microphone analyzer', self)
         rtMicAct.setShortcut('Ctrl+A')
         rtMicAct.triggered.connect(self.spectrum)
+
+        recogAct = QAction('Speech Recognition', self)
+        recogAct.setShortcut('Ctrl+O')
+        recogAct.triggered.connect(self.speechRecog)
         
-        fileMenu.addAction(openAct)
         fileMenu.addAction(exitAct)
 
         modeMenu.addAction(recordAct)
         modeMenu.addAction(rtMicAct)
+        modeMenu.addAction(recogAct)
 
         self.setGeometry(446, 156, 1028, 768)
         self.setWindowTitle('Audio Analyzer')    
         self.show()
     
-    def openFileNameDialog(self):
+    def speechRecog(self):
+        def convertAudio(self):
+            r = sr.Recognizer()
+            sound = filename
+            with sr.AudioFile(sound) as source:
+                sound = r.listen(source)
+            try:
+                text = r.recognize_google(sound)
+                textedit.setText(text)
+
+            except Exception as e:
+                print(e)
+
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self,"Open file", "","Audio File (*.wav)", options=options)
-        if fileName:
-            print(fileName)
+        filename, _ = QFileDialog.getOpenFileName(self,"Open file", "","Audio File (*.wav)", options=options)
+        vbox = QVBoxLayout()
 
+        wid = QWidget(self)
+        self.setCentralWidget(wid)
+
+        textedit = QTextEdit()
+        textedit.setFont(QFont("Segoe UI", 15))
+        vbox.addWidget(textedit)
+
+        btn = QPushButton("Speech to text")
+        vbox.addWidget(btn)
+        btn.clicked.connect(convertAudio)
+
+        wid.setLayout(vbox)
+        
     def spectrum(self):
         # Spectrum  
         SpecTrum = specTrum()
@@ -111,7 +136,6 @@ class audioAnalyzer(QMainWindow):
         recordBtn.setFixedSize(30, 30)
         recordBtn.setIcon(QtGui.QIcon('record.png'))
         recordBtn.clicked.connect(recordAction)
-
         
         grid = QGridLayout()
         grid.addWidget(recordBtn)        
