@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import pyaudio
 import pyqtgraph as pg 
-from PyQt5.QtWidgets import QMainWindow, QAction, QApplication, QMenu, QFileDialog, QWidget, QPushButton, QVBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QMainWindow, QAction, QApplication, QMenu, QFileDialog, QWidget, QPushButton, QVBoxLayout, QGridLayout, QInputDialog
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import pyqtSlot
 import wave
@@ -14,7 +14,7 @@ chunk = 512
 start = 0
 N = 512
 filename = "file.wav"
-record_seconds = 5
+record_seconds = 3
 
 class audioAnalyzer(QMainWindow):
     def __init__(self):
@@ -65,7 +65,7 @@ class audioAnalyzer(QMainWindow):
         SpecTrum = specTrum()
         self.setCentralWidget(SpecTrum)
 
-    def record(self):
+    def record(self):            
         def recordAction(self):
             audio = pyaudio.PyAudio()
             stream = audio.open(
@@ -76,6 +76,11 @@ class audioAnalyzer(QMainWindow):
                 frames_per_buffer = chunk)
             frames = []          
 
+            # Enter time
+            i, okPressed = QInputDialog.getInt(None, "Record time","Second:", 3, 0, 100, 1)
+            record_seconds = i
+
+            # Start recording
             for i in range(0, int(rate / chunk * record_seconds)):
                 data = stream.read(chunk)
                 frames.append(data)
@@ -83,11 +88,13 @@ class audioAnalyzer(QMainWindow):
             stream.stop_stream()
             stream.close()
             audio.terminate()
-            
-            print("finished recording")
+            print("Finished recording")
+
+            # Save file
             options = QFileDialog.Options()
             options |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getSaveFileName(None ,"Save file","","Audio File (*.wav)", options=options)
+
             waveFile = wave.open(filename, 'wb')
             waveFile.setnchannels(channels)
             waveFile.setsampwidth(audio.get_sample_size(format))
@@ -105,6 +112,7 @@ class audioAnalyzer(QMainWindow):
         recordBtn.setIcon(QtGui.QIcon('record.png'))
         recordBtn.clicked.connect(recordAction)
 
+        
         grid = QGridLayout()
         grid.addWidget(recordBtn)        
 
