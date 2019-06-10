@@ -4,6 +4,8 @@ import pyaudio
 import pyqtgraph as pg 
 from PyQt5.QtWidgets import QMainWindow, QAction, QApplication, QMenu, QFileDialog, QWidget, QPushButton, QVBoxLayout, QGridLayout
 from PyQt5 import QtCore, QtGui
+from PyQt5.QtCore import pyqtSlot
+import wave
 
 format = pyaudio.paFloat32
 channels = 1
@@ -11,6 +13,8 @@ rate = 16000
 chunk = 512
 start = 0
 N = 512
+filename = "file.wav"
+record_seconds = 5
 
 class audioAnalyzer(QMainWindow):
     def __init__(self):
@@ -63,25 +67,33 @@ class audioAnalyzer(QMainWindow):
 
     def record(self):
         def recordAction(self):
-            recordBtn.clicked.disconnect()
-            recordBtn.setToolTip('Stop Recording')
-            recordBtn.setShortcut('S')
-            recordBtn.setIcon(QtGui.QIcon('stop.png'))
-            recordBtn.clicked.connect(stopAction)
+            audio = pyaudio.PyAudio()
+            stream = audio.open(
+                format = format,
+                channels = channels,
+                rate = rate,
+                input = True,
+                frames_per_buffer = chunk)
+            frames = []          
 
-        def stopAction(self):
-            recordBtn.clicked.disconnect()
+            for i in range(0, int(rate / chunk * record_seconds)):
+                data = stream.read(chunk)
+                frames.append(data)
 
+            stream.stop_stream()
+            stream.close()
+            audio.terminate()
+            
+            print("finished recording")
             options = QFileDialog.Options()
             options |= QFileDialog.DontUseNativeDialog
-            fileName, _ = QFileDialog.getSaveFileName(None ,"Save file","","Audio File (*.wav)", options=options)
-            if fileName:
-                print(fileName)
-
-            recordBtn.setToolTip('Start Recording')
-            recordBtn.setShortcut('R')
-            recordBtn.setIcon(QtGui.QIcon('record.png'))
-            recordBtn.clicked.connect(recordAction)
+            filename, _ = QFileDialog.getSaveFileName(None ,"Save file","","Audio File (*.wav)", options=options)
+            waveFile = wave.open(filename, 'wb')
+            waveFile.setnchannels(channels)
+            waveFile.setsampwidth(audio.get_sample_size(format))
+            waveFile.setframerate(rate)
+            waveFile.writeframes(b''.join(frames))
+            waveFile.close()
 
         wid = QWidget(self)
         self.setCentralWidget(wid)
