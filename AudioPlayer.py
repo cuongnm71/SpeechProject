@@ -62,13 +62,6 @@ class audioAnalyzer(QMainWindow):
         self.setCentralWidget(SpecTrum)
 
     def record(self):
-        format = pyaudio.paFloat32
-        channels = 1
-        rate = 16000
-        chunk = 512
-        start = 0
-        N = 512
-
         def recordAction(self):
             recordBtn.clicked.disconnect()
             recordBtn.setToolTip('Stop Recording')
