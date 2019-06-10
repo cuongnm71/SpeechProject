@@ -49,28 +49,37 @@ class audioAnalyzer(QMainWindow):
         if fileName:
             print(fileName)
 
-    def saveFileDialog(self):
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getSaveFileName(self,"Save file","","Audio File (*.wav)", options=options)
-        if fileName:
-            print(fileName)
-
     def spectrum(self):
         # Spectrum  
         SpecTrum = specTrum()
         self.setCentralWidget(SpecTrum)
 
     def record(self):
+        format = pyaudio.paFloat32
+        channels = 1
+        rate = 16000
+        chunk = 512
+        start = 0
+        N = 512
+
         def recordAction(self):
+            recordBtn.clicked.disconnect()
             recordBtn.setToolTip('Stop Recording')
-            recordBtn.setShortcut('Ctrl+S')
+            recordBtn.setShortcut('S')
             recordBtn.setIcon(QtGui.QIcon('stop.png'))
             recordBtn.clicked.connect(stopAction)
 
         def stopAction(self):
+            recordBtn.clicked.disconnect()
+
+            options = QFileDialog.Options()
+            options |= QFileDialog.DontUseNativeDialog
+            fileName, _ = QFileDialog.getSaveFileName(None ,"Save file","","Audio File (*.wav)", options=options)
+            if fileName:
+                print(fileName)
+
             recordBtn.setToolTip('Start Recording')
-            recordBtn.setShortcut('Ctrl+R')
+            recordBtn.setShortcut('R')
             recordBtn.setIcon(QtGui.QIcon('record.png'))
             recordBtn.clicked.connect(recordAction)
 
@@ -79,7 +88,7 @@ class audioAnalyzer(QMainWindow):
 
         recordBtn = QPushButton()
         recordBtn.setToolTip('Start Recording')
-        recordBtn.setShortcut('Ctrl+R')
+        recordBtn.setShortcut('R')
         recordBtn.setFixedSize(30, 30)
         recordBtn.setIcon(QtGui.QIcon('record.png'))
         recordBtn.clicked.connect(recordAction)
@@ -88,7 +97,8 @@ class audioAnalyzer(QMainWindow):
         grid.addWidget(recordBtn)        
 
         vbox = QVBoxLayout()
-        vbox.addStretch(1)
+        SpecTrum = specTrum()
+        vbox.addWidget(SpecTrum)
         vbox.addLayout(grid)      
 
         wid.setLayout(vbox)
@@ -122,7 +132,7 @@ class specTrum(pg.PlotWidget):
         self.plotitem = self.getPlotItem()
         self.plotitem.setMouseEnabled(x = False, y = False) 
         self.plotitem.setYRange(0, 10, padding = 0)
-        self.plotitem.setXRange(0, 8000, padding = 0)
+        self.plotitem.setXRange(0, 2000, padding = 0)
         self.plotSpectrum = self.plotitem.plot()
         
         #Label
