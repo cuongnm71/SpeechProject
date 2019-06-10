@@ -5,6 +5,13 @@ import pyqtgraph as pg
 from PyQt5.QtWidgets import QMainWindow, QAction, QApplication, QMenu, QFileDialog, QWidget, QPushButton, QVBoxLayout, QGridLayout
 from PyQt5 import QtCore, QtGui
 
+format = pyaudio.paFloat32
+channels = 1
+rate = 16000
+chunk = 512
+start = 0
+N = 512
+
 class audioAnalyzer(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -106,13 +113,6 @@ class audioAnalyzer(QMainWindow):
         
 
 class specTrum(pg.PlotWidget):
-    format = pyaudio.paFloat32
-    channels = 1
-    rate = 16000
-    chunk = 512
-    start = 0
-    N = 512
-
     def __init__(self):
         super().__init__()
         self.initUI()
@@ -121,12 +121,12 @@ class specTrum(pg.PlotWidget):
         #PyAudio
         self.pa = pyaudio.PyAudio()
         self.stream = self.pa.open(
-            format = self.format,
-            channels = self.channels,
-            rate = self.rate,
+            format = format,
+            channels = channels,
+            rate = rate,
             input = True,
             output = False,
-            frames_per_buffer = self.chunk)
+            frames_per_buffer = chunk)
 
         #PlotWidget
         self.plotitem = self.getPlotItem()
@@ -146,13 +146,13 @@ class specTrum(pg.PlotWidget):
 
     def update(self):
         data = self.input()
-        freqlist = np.fft.fftfreq(self.N, d = 1.0 / self.rate)
-        x = np.fft.fft(data[self.start:self.start + self.N])
+        freqlist = np.fft.fftfreq(N, d = 1.0 / rate)
+        x = np.fft.fft(data[start:start + N])
         amplitudeSpectrum = [np.sqrt(c.real ** 2 + c.imag ** 2) for c in x]
         self.plotSpectrum.setData(freqlist, amplitudeSpectrum)
 
     def input(self):
-        data = self.stream.read(self.chunk)
+        data = self.stream.read(chunk)
         data = np.frombuffer(data, np.float32)
         return data
 
