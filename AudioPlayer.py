@@ -184,7 +184,7 @@ class specTrum(pg.PlotWidget):
     def update(self):
         data = self.input()
         freqlist = np.fft.fftfreq(N, d = 1.0 / rate)
-        x = np.fft.fft(data[start:start + N])
+        x = np.fft.fft(data)
         amplitudeSpectrum = [np.sqrt(c.real ** 2 + c.imag ** 2) for c in x]
         self.plotSpectrum.setData(freqlist, amplitudeSpectrum)
 
