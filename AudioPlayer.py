@@ -8,6 +8,8 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QFont
 import wave
 import speech_recognition as sr
+import sounddevice as sd
+import soundfile as sf
 
 format = pyaudio.paFloat32
 channels = 1
@@ -24,6 +26,7 @@ class audioAnalyzer(QMainWindow):
         self.initUI()
 
     def initUI(self):
+        # Menubar
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('File')
         modeMenu = menubar.addMenu('Mode')
@@ -50,11 +53,13 @@ class audioAnalyzer(QMainWindow):
         modeMenu.addAction(rtMicAct)
         modeMenu.addAction(recogAct)
 
+        # Settings
         self.setGeometry(446, 156, 1028, 768)
         self.setWindowTitle('Audio Analyzer')    
         self.show()
     
     def speechRecog(self):
+        # Speech recognition
         def convertAudio(self):
             r = sr.Recognizer()
             sound = filename
@@ -67,6 +72,7 @@ class audioAnalyzer(QMainWindow):
             except Exception as e:
                 print(e)
 
+        # Open file
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
         filename, _ = QFileDialog.getOpenFileName(self,"Open file", "","Audio File (*.wav)", options=options)
@@ -92,40 +98,18 @@ class audioAnalyzer(QMainWindow):
 
     def record(self):            
         def recordAction(self):
-            audio = pyaudio.PyAudio()
-            stream = audio.open(
-                format = format,
-                channels = channels,
-                rate = rate,
-                input = True,
-                frames_per_buffer = chunk)
-            frames = []          
-
             # Enter time
             i, okPressed = QInputDialog.getInt(None, "Record time","Second:", 3, 0, 100, 1)
             record_seconds = i
 
             # Start recording
-            for i in range(0, int(rate / chunk * record_seconds)):
-                data = stream.read(chunk)
-                frames.append(data)
-
-            stream.stop_stream()
-            stream.close()
-            audio.terminate()
-            print("Finished recording")
-
+            mydata = sd.rec(int(rate * record_seconds), samplerate = rate, channels = channels, blocking=True)
+            
             # Save file
             options = QFileDialog.Options()
             options |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getSaveFileName(None ,"Save file","","Audio File (*.wav)", options=options)
-
-            waveFile = wave.open(filename, 'wb')
-            waveFile.setnchannels(channels)
-            waveFile.setsampwidth(audio.get_sample_size(format))
-            waveFile.setframerate(rate)
-            waveFile.writeframes(b''.join(frames))
-            waveFile.close()
+            sf.write(filename, mydata, rate)
 
         wid = QWidget(self)
         self.setCentralWidget(wid)
@@ -138,7 +122,7 @@ class audioAnalyzer(QMainWindow):
         recordBtn.clicked.connect(recordAction)
         
         grid = QGridLayout()
-        grid.addWidget(recordBtn)        
+        grid.addWidget(recordBtn)
 
         vbox = QVBoxLayout()
         SpecTrum = specTrum()
@@ -147,7 +131,6 @@ class audioAnalyzer(QMainWindow):
 
         wid.setLayout(vbox)
 
-        
 
 class specTrum(pg.PlotWidget):
     def __init__(self):
@@ -174,7 +157,7 @@ class specTrum(pg.PlotWidget):
         
         #Label
         self.specAxis = self.plotitem.getAxis("bottom")
-        self.specAxis.setLabel("Frequency (Hz)")        
+        self.specAxis.setLabel("Frequency (Hz)")
 
         #Update plot
         self.timer = QtCore.QTimer()
