@@ -98,6 +98,8 @@ class audioAnalyzer(QMainWindow):
 
     def record(self):            
         def recordAction(self):
+            recordBtn.disconnect()
+            
             # Enter time
             i, okPressed = QInputDialog.getInt(None, "Record time","Second:", 3, 0, 100, 1)
             record_seconds = i
@@ -110,6 +112,8 @@ class audioAnalyzer(QMainWindow):
             options |= QFileDialog.DontUseNativeDialog
             filename, _ = QFileDialog.getSaveFileName(None ,"Save file","","Audio File (*.wav)", options=options)
             sf.write(filename, mydata, rate)
+
+            recordBtn.clicked.connect(recordAction)
 
         wid = QWidget(self)
         self.setCentralWidget(wid)
